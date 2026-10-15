@@ -23,6 +23,9 @@ public class Student {
     @Column(name = "email")
     private String email;
 
+    @Column(name = "user_name")
+    private String userName;
+
     @Column(name = "address_id")
     private long addressId;
 }

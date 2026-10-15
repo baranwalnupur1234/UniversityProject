@@ -15,6 +15,8 @@ public class StudentResponse {
 
     private String email;
 
+    private String userName;
+
     private AddressResponse addressResponse;
 
     public StudentResponse(Student student) {
@@ -22,5 +24,6 @@ public class StudentResponse {
         this.firstName = student.getFirstName();
         this.lastName = student.getLastName();
         this.email = student.getEmail();
+        this.userName = student.getUserName();
     }
 }
