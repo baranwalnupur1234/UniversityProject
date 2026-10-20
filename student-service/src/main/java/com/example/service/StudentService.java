@@ -11,6 +11,9 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -35,7 +38,7 @@ public class StudentService {
     CommonService commonService;
 
 
-    public StudentResponse cretaeStudent(CreateStudentRequest createStudentRequest) {
+    public StudentResponse createStudent(CreateStudentRequest createStudentRequest) {
 
         Student student = new Student();
         student.setFirstName(createStudentRequest.getFirstName());
@@ -77,7 +80,10 @@ public class StudentService {
     public StudentResponse getById (long id) {
 
         logger.info("Inside Student getById");
-
+        if(id<10){
+            logger.info("Inside Student getById id<10");
+            throw new RuntimeException("Student not found");
+        }
         Student student = studentRepository.findById(id).get();
         StudentResponse studentResponse = new StudentResponse(student);
 
@@ -102,6 +108,45 @@ public class StudentService {
         StudentDTO studentDTO = new StudentDTO(student.getFirstName(), student.getLastName());
         return studentDTO;
     }
+
+    public Student updateStudentProfileService(Long id, Student student){
+
+        Student st = studentRepository.findById(id).orElse(null);
+        if(st != null){
+            st.setFirstName(student.getFirstName());
+            st.setLastName(student.getLastName());
+            st.setEmail(student.getEmail());
+            st.setUserName(student.getUserName());
+            st.setAddressId(student.getAddressId());
+
+            return studentRepository.save(st);
+        }else{
+            throw new RuntimeException("Student is not found with this id : "+ id);
+        }
+    }
+
+    public void deleteStudentProfileService(Long id){
+        studentRepository.deleteById(id);
+    }
+
+
+    /*
+    pagination concept building:
+
+        Page<Student> : Contains the student records and pagination information, such as total pages and total elements.
+     */
+    public Page<Student> getAllStudentService(int page, int size){
+        Pageable pageable = PageRequest.of(page,size); // create pagination request
+
+        return studentRepository.findAll(pageable);  // fetches only the requested page.
+    }
+
+
+
+
+
+
+
 /*
     @CircuitBreaker(name = "addressService",
             fallbackMethod = "fallbackGetAddressById")

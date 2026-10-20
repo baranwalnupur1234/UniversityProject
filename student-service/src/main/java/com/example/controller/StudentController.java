@@ -6,7 +6,9 @@ import com.example.request.CreateStudentRequest;
 import com.example.response.StudentDTO;
 import com.example.response.StudentResponse;
 import com.example.service.StudentService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,8 +19,8 @@ public class StudentController {
     StudentService studentService;
 
     @PostMapping("/create")
-    public StudentResponse createStudent (@RequestBody CreateStudentRequest createStudentRequest) {
-        return studentService.cretaeStudent(createStudentRequest);
+    public StudentResponse createStudent (@Valid @RequestBody CreateStudentRequest createStudentRequest) {
+        return studentService.createStudent(createStudentRequest);
     }
 
     @GetMapping("getById/{id}")
@@ -35,4 +37,17 @@ public class StudentController {
         return studentService.getNameByUserName(userName);
     }
 
+    @PutMapping("/update/{id}")
+    public Student updateStudentProfile(@PathVariable long id, @RequestBody Student student){
+        return studentService.updateStudentProfileService(id,student);
+    }
+    @DeleteMapping("/delete/{id}")
+    public void deleteStudentProfile(@PathVariable long id){
+        studentService.deleteStudentProfileService(id);
+    }
+
+    @GetMapping("/pageination")
+    public Page<Student> getAllStudents(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size){
+        return studentService.getAllStudentService(page,size);
+    }
 }
