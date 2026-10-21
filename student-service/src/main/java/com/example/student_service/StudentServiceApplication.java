@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @SpringBootApplication
-@ComponentScan({"com.example.controller", "com.example.service"})
+@ComponentScan({"com.example.controller", "com.example.service", "com.example.exception"})
 @EntityScan("com.example.entity")
 @EnableJpaRepositories("com.example.repository")
 @EnableFeignClients("com.example.feignclients")

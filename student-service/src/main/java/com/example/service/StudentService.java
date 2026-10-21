@@ -1,6 +1,7 @@
 package com.example.service;
 
 import com.example.entity.Student;
+import com.example.exception.StudentNotFoundException;
 import com.example.feignclients.AddressFeignClient;
 import com.example.repository.StudentRepository;
 import com.example.request.CreateStudentRequest;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -80,23 +83,25 @@ public class StudentService {
     public StudentResponse getById (long id) {
 
         logger.info("Inside Student getById");
-        if(id<10){
-            logger.info("Inside Student getById id<10");
-            throw new RuntimeException("Student not found");
-        }
-        Student student = studentRepository.findById(id).get();
+//        if(id<10){
+//            logger.info("Inside Student getById id<10");
+//            throw new RuntimeException("Student not found");
+//        }
+        Student student = studentRepository.findById(id)
+                .orElseThrow(() -> new StudentNotFoundException( "Student not found with id :" + id));
+
         StudentResponse studentResponse = new StudentResponse(student);
 
         studentResponse.setAddressResponse(commonService.getAddressById(student.getAddressId()));
 
        // studentResponse.setAddressResponse(addressFeignClient.getById(student.getAddressId()));
-
+        logger.info("Fetching student with id {}", id);
         return studentResponse;
     }
 
     public StudentResponse getByUserName(String userName) {
         Student student = studentRepository.findByUserName(userName)
-                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Student not found"));
+                .orElseThrow(() -> new StudentNotFoundException("Student not found with username :" + userName));
         StudentResponse studentResponse = new StudentResponse(student);
         studentResponse.setAddressResponse(commonService.getAddressById(student.getAddressId()));
 
@@ -121,7 +126,7 @@ public class StudentService {
 
             return studentRepository.save(st);
         }else{
-            throw new RuntimeException("Student is not found with this id : "+ id);
+            throw new StudentNotFoundException("Student is not found with this id : "+ id);
         }
     }
 
@@ -140,11 +145,15 @@ public class StudentService {
 
         return studentRepository.findAll(pageable);  // fetches only the requested page.
     }
+/*
+Use Page<Student> internally for pagination, then return its getContent() to expose only the students in the requested page.
+ You’ll no longer return metadata such as total pages or total elements.
+ */
+    public List<Student> getAllDetailStudentService(int page, int size){
+        Pageable pageable = PageRequest.of(page,size); // create pagination request
 
-
-
-
-
+        return studentRepository.findAll(pageable).getContent();  // fetches only the requested page.
+    }
 
 
 /*

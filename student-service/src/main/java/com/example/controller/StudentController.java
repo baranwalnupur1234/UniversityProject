@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/student")
 public class StudentController {
@@ -49,5 +51,10 @@ public class StudentController {
     @GetMapping("/pageination")
     public Page<Student> getAllStudents(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size){
         return studentService.getAllStudentService(page,size);
+    }
+
+    @GetMapping("/pageination/studentDetails")
+    public List<Student> getAllDetailsStudents(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size){
+        return studentService.getAllDetailStudentService(page,size);
     }
 }
