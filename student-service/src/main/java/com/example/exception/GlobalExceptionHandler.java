@@ -1,10 +1,13 @@
 package com.example.exception;
 
+import com.example.response.APIResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.List;
 import java.util.Map;
 /**
  * GlobalExceptionHandler is a class that handles exceptions thrown by the application
@@ -25,15 +28,30 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(StudentNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleStudentNOtFound(StudentNotFoundException ex){
+    public ResponseEntity<APIResponse<Void>> handleStudentNOtFound(StudentNotFoundException ex){
 
-        Map<String,String> error = Map.of(
-                "error", "Student Not Found",
-                "message", ex.getMessage()
+       APIResponse<Void> error = APIResponse.error(
+               "Student Not Found",
+                 List.of(ex.getMessage())
         );
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<APIResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
+
+        List<String> errors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField()
+                       + ": " + error.getDefaultMessage())
+                .toList();
+
+        APIResponse<Void> response =
+                APIResponse.error("Validation failed", errors);
+        return ResponseEntity.badRequest().body(response);
     }
 }

@@ -3,12 +3,14 @@ package com.example.controller;
 
 import com.example.entity.Student;
 import com.example.request.CreateStudentRequest;
+import com.example.response.APIResponse;
 import com.example.response.StudentDTO;
 import com.example.response.StudentResponse;
 import com.example.service.StudentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,8 +28,11 @@ public class StudentController {
     }
 
     @GetMapping("getById/{id}")
-    public StudentResponse getById (@PathVariable long id) {
-        return studentService.getById(id);
+    public ResponseEntity<APIResponse<StudentResponse>> getById (@PathVariable long id) {
+        StudentResponse studentResponse = studentService.getById(id);
+
+        APIResponse<StudentResponse> response = APIResponse.success("Student fetched succefully", studentResponse);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/getByUserName/{userName}")
