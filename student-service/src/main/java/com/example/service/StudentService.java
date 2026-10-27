@@ -10,9 +10,13 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Service
 public class StudentService {
@@ -72,7 +76,9 @@ public class StudentService {
 
         logger.info("Inside Student getById");
 
-        Student student = studentRepository.findById(id).get();
+        Student student = studentRepository.findById(id)
+                .orElseThrow(()-> new ResponseStatusException
+                        (HttpStatus.NOT_FOUND, "Student not found with id: " + id));
         StudentResponse studentResponse = new StudentResponse(student);
 
         studentResponse.setAddressResponse(commonService.getAddressById(student.getAddressId()));
@@ -81,6 +87,35 @@ public class StudentService {
 
         return studentResponse;
     }
+
+    public List<StudentResponse> getAllStudentDetails(){
+        // step 1: Fetch all students from the database
+        List<Student> students = studentRepository.findAll();
+        // Step 2: Convert each student into studentResponse
+        // The expression StudentResponse::new is a constructor reference. It is a shorter way of writing:  .map(student -> new StudentResponse(student))
+        List<StudentResponse> studentResponses = students.stream().map(StudentResponse::new).toList();
+        //step 3: Return the list of response objects
+        return studentResponses;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*
     @CircuitBreaker(name = "addressService",
             fallbackMethod = "fallbackGetAddressById")
