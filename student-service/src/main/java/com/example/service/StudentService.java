@@ -5,11 +5,15 @@ import com.example.feignclients.AddressFeignClient;
 import com.example.repository.StudentRepository;
 import com.example.request.CreateStudentRequest;
 import com.example.response.AddressResponse;
+import com.example.response.StudentPageResponse;
 import com.example.response.StudentResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -17,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class StudentService {
@@ -34,6 +39,7 @@ public class StudentService {
     @Autowired
     CommonService commonService;
 
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "firstName", "lastname", "email");
 
     public StudentResponse cretaeStudent(CreateStudentRequest createStudentRequest) {
 
@@ -100,10 +106,31 @@ public class StudentService {
 
 
 
+ // Implementing Pagination concept
 
+    public StudentPageResponse getAllStudentByPagination(int page, int size){
 
+       Pageable pageable = PageRequest.of(page,size);
+       Page<Student>studentPage = studentRepository.findAll(pageable);
+       List<Student> students = studentPage.getContent();
 
+       List<StudentResponse> responses = students.stream().map(student -> {
+           StudentResponse response = new StudentResponse(student);
+           response.setAddressResponse(
+                   commonService.getAddressById(student.getAddressId())
+           );
+           return response;
+       }).toList();
 
+        return new StudentPageResponse(
+                responses,
+                studentPage.getNumber(),
+                studentPage.getSize(),
+                studentPage.getTotalElements(),
+                studentPage.getTotalPages(),
+                studentPage.isLast()
+        );
+    }
 
 
 
